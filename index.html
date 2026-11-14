@@ -104,12 +104,13 @@ button:hover{background-color:var(--accent-hover)}
 <body>
 <div class="container">
 
-<!-- 1. CONNEXION -->
+<!-- 1. CONNEXION / INSCRIPTION -->
 <div id="auth-section" class="card">
 <h2>🎮 World Game</h2>
-<div class="form-group"><label>Nom d'utilisateur</label><input type="text" id="username" placeholder="Ex: Nacky" value="Nacky"></div>
-<div class="form-group"><label>Mot de passe</label><input type="password" id="password" placeholder="••••••••" value="1234"></div>
-<button onclick="seConnecter()">Se connecter</button>
+<p style="text-align:center;font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;">Créez votre compte gratuitement (Solde initial : 0 FCFA)</p>
+<div class="form-group"><label>Nom d'utilisateur</label><input type="text" id="username" placeholder="Ex: Nacky"></div>
+<div class="form-group"><label>Mot de passe</label><input type="password" id="password" placeholder="••••••••"></div>
+<button onclick="seConnecter()">Se connecter / S'inscrire</button>
 </div>
 
 <!-- 2. LOBBY -->
@@ -118,7 +119,7 @@ button:hover{background-color:var(--accent-hover)}
 <div><h3 id="welcome-user" style="font-size:1rem;">Bienvenue</h3><small style="color:var(--text-muted);font-size:.75rem;">En ligne</small></div>
 <div class="wallet-box">
 <small style="display:block;color:var(--text-muted);font-size:.7rem;">Solde de jeux actuel</small>
-<div class="wallet" id="user-wallet">10 000 FCFA</div>
+<div class="wallet" id="user-wallet">0 FCFA</div>
 <div class="wallet-actions">
 <button onclick="ouvrirModalRecharge()" style="background-color:var(--success);">+ Recharger</button>
 <button onclick="ouvrirModalRetrait()" style="background-color:var(--warning);color:#000;">Retrait</button>
@@ -136,7 +137,7 @@ button:hover{background-color:var(--accent-hover)}
 
 <button class="menu-btn create-defi" onclick="basculerBox('creation-defi-box')"><span>➕ Création de Défi</span><span>▼</span></button>
 <div id="creation-defi-box" class="box-container hidden">
-<div class="form-group"><label>Votre mise (FCFA)</label><input type="number" id="montant-mise" value="1000"></div>
+<div class="form-group"><label>Votre mise (Min. 250 FCFA)</label><input type="number" id="montant-mise" value="250" min="250"></div>
 <div class="form-group"><label>Temps par coup (Chrono)</label>
 <select id="temps-defi">
 <option value="10">10 Secondes</option><option value="30">30 Secondes</option><option value="60">1 Minute</option><option value="180">3 Minutes</option><option value="300" selected>5 Minutes</option>
@@ -151,10 +152,7 @@ button:hover{background-color:var(--accent-hover)}
 
 <button class="menu-btn wait-defi" onclick="basculerBox('defis-attente-box')"><span>⏳ Défis en Attente</span><span>▼</span></button>
 <div id="defis-attente-box" class="box-container hidden">
-<div class="defi-item">
-<div><strong>Joueur_002</strong><br><small style="color:var(--success);">Mise : 2 000 FCFA (30s/coup)</small></div>
-<button class="btn-relever" onclick="lancerPartieDefi('Joueur_002',2000,30)">Relever</button>
-</div>
+<div id="liste-defis-attente" style="font-size:0.85rem; color:var(--text-muted);">Chargement des défis en attente...</div>
 </div>
 
 <button class="menu-btn training" onclick="basculerBox('salle-entrainement-box')"><span>🤖 Salle d'Entraînement (Vs IA)</span><span>▼</span></button>
@@ -234,21 +232,28 @@ button:hover{background-color:var(--accent-hover)}
 
 <!-- MODALE RECHARGE -->
 <div id="modal-recharge" class="modal-overlay hidden"><div class="modal-card">
-<h3>💳 Recharger mon solde</h3>
-<div class="form-group" style="text-align:left;"><label>Opérateur Mobile</label>
-<select id="operateur-recharge"><option value="Wave">🌊 Wave</option><option value="Orange Money">🟠 Orange Money</option><option value="MTN Money">🟡 MTN Mobile Money</option><option value="Moov Money">🔵 Moov Money</option></select></div>
-<div class="form-group" style="text-align:left;"><label>Montant (FCFA)</label><input type="number" id="input-montant-recharge" value="5000"></div>
-<button onclick="validerRecharge()" style="background-color:var(--success);">Valider le dépôt</button>
-<button onclick="fermerModales()" style="background-color:#475569;margin:0;">Annuler</button>
+<h3>💳 Recharger mon solde (Wave)</h3>
+<p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;">1. Payez via le lien Wave ci-dessous.<br>2. Envoyez la capture sur WhatsApp au <strong>0173110743</strong> pour validation.</p>
+<a href="https://pay.wave.com/m/M_dQNxOa48-kSX/c/ci/" target="_blank" style="display:block;background:#0284c7;color:#fff;padding:10px;border-radius:8px;text-decoration:none;font-weight:bold;margin-bottom:12px;">🔗 Ouvrir le lien Wave</a>
+<div class="form-group" style="text-align:left;"><label>Montant payé (FCFA)</label><input type="number" id="input-montant-recharge" value="1000"></div>
+<button onclick="validerRechargeWhatsApp()" style="background-color:#25d366;color:#fff;">📱 Envoyer la preuve sur WhatsApp</button>
+<button onclick="fermerModales()" style="background-color:#475569;margin:0;">Fermer</button>
 </div></div>
 
-<!-- MODALE RETRAIT -->
+<!-- MODALE SOLDE INSUFFISANT / REDIRECTION WAVE -->
+<div id="modal-solde-insuffisant" class="modal-overlay hidden"><div class="modal-card">
+<h3 style="color:var(--danger);">⚠️ Solde insuffisant</h3>
+<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;" id="texte-solde-insuffisant">Vous n'avez pas assez d'argent sur votre compte pour participer à ce défi.</p>
+<a href="https://pay.wave.com/m/M_dQNxOa48-kSX/c/ci/" target="_blank" style="display:block;background:#0284c7;color:#fff;padding:10px;border-radius:8px;text-decoration:none;font-weight:bold;margin-bottom:10px;">🔗 Recharger via Wave</a>
+<button onclick="fermerModalSolde()" style="background-color:#475569;margin:0;">Fermer</button>
+</div></div>
+
+<!-- MODALE RETRAIT (1000 FCFA MIN + 10% FRAIS) -->
 <div id="modal-retrait" class="modal-overlay hidden"><div class="modal-card">
-<h3>💸 Demande de Retrait</h3>
-<div class="form-group" style="text-align:left;"><label>Opérateur Mobile</label>
-<select id="operateur-retrait"><option value="Wave">🌊 Wave</option><option value="Orange Money">🟠 Orange Money</option><option value="MTN Money">🟡 MTN Mobile Money</option><option value="Moov Money">🔵 Moov Money</option></select></div>
-<div class="form-group" style="text-align:left;"><label>Montant à retirer (FCFA)</label><input type="number" id="input-montant-retrait" value="2000"></div>
-<button onclick="validerRetrait()" style="background-color:var(--warning);color:#000;">Confirmer le retrait</button>
+<h3>💸 Demande de Retrait (Min. 1000 FCFA)</h3>
+<p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;">Frais de retrait : <strong>10%</strong>.<br>Les retraits s'effectuent via WhatsApp au <strong>0173110743</strong>.</p>
+<div class="form-group" style="text-align:left;"><label>Montant souhaité (FCFA)</label><input type="number" id="input-montant-retrait" value="1000" min="1000"></div>
+<button onclick="demanderRetraitWhatsApp()" style="background-color:#25d366;color:#fff;">📱 Demander le retrait sur WhatsApp</button>
 <button onclick="fermerModales()" style="background-color:#475569;margin:0;">Annuler</button>
 </div></div>
 
@@ -263,14 +268,6 @@ button:hover{background-color:var(--accent-hover)}
 </div>
 </div>
 
-<!-- MODALE JOKER -->
-<div id="modal-joker" class="modal-overlay hidden"><div class="modal-card">
-<h3>🃏 Joker</h3>
-<p style="color:var(--text-muted);font-size:.8rem;margin-bottom:10px;">Choisissez la lettre que ce joker représente :</p>
-<div id="joker-grid"></div>
-<button onclick="annulerJoker()" style="background-color:#475569;margin:10px 0 0;">Annuler</button>
-</div></div>
-
 <div id="toast-notification">Notification</div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -278,7 +275,6 @@ button:hover{background-color:var(--accent-hover)}
 <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
 
 <script>
-// URL de votre Web App Google Apps Script
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby4bueUdcZkH0OT7pTPOfXWt4hjotFcepwIMYmXyAHRKi03IJvahQwZquV7H6-3ngdw/exec";
 
 function envoyerVersSheet(tableName, rowValues) {
@@ -291,10 +287,32 @@ function envoyerVersSheet(tableName, rowValues) {
   }).catch(err => console.error("Erreur Google Sheet :", err));
 }
 
+function chargerDefisEnAttente() {
+  fetch(WEB_APP_URL + "?table=Défis_Lobby")
+  .then(res => res.json())
+  .then(res => {
+    const container = document.getElementById('liste-defis-attente');
+    if(res.status === "success" && res.data && res.data.length > 0) {
+      container.innerHTML = "";
+      res.data.forEach(defi => {
+        if(defi.Statut_Defi === "En attente") {
+          const item = document.createElement('div');
+          item.className = "defi-item";
+          item.innerHTML = `<div><strong>${defi.Createur_ID}</strong><br><small style="color:var(--success);">Jeu : ${defi.Jeu || 'Général'} | Mise : ${defi.Montant_Mise} FCFA</small></div>
+                            <button class="btn-relever" onclick="releverDefi('${defi.ID_Defi}', ${defi.Montant_Mise})">Relever</button>`;
+          container.appendChild(item);
+        }
+      });
+      if(container.innerHTML === "") container.innerHTML = "Aucun défi en attente pour le moment.";
+    }
+  })
+  .catch(err => console.error("Erreur chargement défis :", err));
+}
+
 let jeuActif='domino',gameChess=null,boardChess=null;
 let damesGrille=[],tourDames='blanc',pionSelectionne=null;
 let modeActuel='training',niveauIA='moyen';
-let soldeActuel=10000,miseActuellePartie=0,tempsParCoupMax=300,tempsActuel=300;
+let soldeActuel=0,miseActuellePartie=0,tempsParCoupMax=300,tempsActuel=300;
 let forfaitsJ1=0,forfaitsJ2=0,intervalTimer=null,nomUtilisateur="Nacky",userId="USR_001",lienActuel="",partieEstTerminee=false;
 
 const REGLES_JEUX = {
@@ -334,13 +352,15 @@ function seConnecter(){
   if(nom===""){afficherToast("Veuillez entrer un nom d'utilisateur !","#ef4444");return;}
   nomUtilisateur=nom;
   userId="USR_" + Math.floor(Math.random() * 90000 + 10000);
+  soldeActuel = 0; // Solde de départ 0 FCFA pour les nouveaux comptes
   document.getElementById('welcome-user').innerText="Hello, "+nom;
   document.getElementById('auth-section').classList.add('hidden');
   document.getElementById('lobby-section').classList.remove('hidden');
   mettreAJourAffichageSolde();
-
-  // Enregistrement de l'utilisateur dans Google Sheet (Table "Utilisateurs")[span_4](start_span)[span_4](end_span)
   envoyerVersSheet("Utilisateurs", [userId, nomUtilisateur, nom.toLowerCase()+"@worldgame.com", "1234", soldeActuel, "Actif"]);
+  
+  setInterval(chargerDefisEnAttente, 5000);
+  chargerDefisEnAttente();
 }
 
 function mettreAJourAffichageSolde(){document.getElementById('user-wallet').innerText=soldeActuel.toLocaleString()+" FCFA";}
@@ -351,28 +371,39 @@ function fermerModales(){
   document.getElementById('modal-retrait').classList.add('hidden');
 }
 
-function validerRecharge(){
-  const op=document.getElementById('operateur-recharge').value;
+function validerRechargeWhatsApp(){
   const m=Number(document.getElementById('input-montant-recharge').value);
-  if(m&&m>0){
-    soldeActuel+=m;mettreAJourAffichageSolde();fermerModales();
-    afficherToast(`✅ Dépôt de ${m.toLocaleString()} FCFA réussi via ${op} !`,"#22c55e");
-    // Enregistrement dans Google Sheet (Table "Transactions")[span_5](start_span)[span_5](end_span)
-    envoyerVersSheet("Transactions", ["TX_"+Date.now(), userId, "Recharge", m, op, "REF_"+Math.floor(Math.random()*1000000), new Date().toLocaleString(), "Validé"]);
-  } else afficherToast("❌ Montant invalide.","#ef4444");
+  if(m && m > 0){
+    fermerModales();
+    const msg = encodeURIComponent(`Bonjour, je souhaite valider ma recharge de ${m} FCFA sur World Game. Mon ID : ${userId} (${nomUtilisateur}). Voici ma capture d'écran :`);
+    window.open(`https://wa.me/2250173110743?text=${msg}`, '_blank');
+    afficherToast("📱 Redirection vers WhatsApp pour validation !","#22c55e");
+    envoyerVersSheet("Transactions", ["TX_"+Date.now(), userId, "Recharge", m, "Wave", "REF_WHATSAPP", new Date().toLocaleString(), "En attente validation"]);
+  } else {
+    afficherToast("❌ Montant invalide.","#ef4444");
+  }
 }
 
-function validerRetrait(){
-  const op=document.getElementById('operateur-retrait').value;
+function demanderRetraitWhatsApp(){
   const m=Number(document.getElementById('input-montant-retrait').value);
-  if(m>soldeActuel) afficherToast("❌ Solde insuffisant !","#ef4444");
-  else if(m<=0) afficherToast("❌ Montant invalide.","#ef4444");
-  else{
-    soldeActuel-=m;mettreAJourAffichageSolde();fermerModales();
-    afficherToast(`💸 Retrait de ${m.toLocaleString()} FCFA validé via ${op} !`,"#f59e0b");
-    // Enregistrement dans Google Sheet (Table "Transactions")[span_6](start_span)[span_6](end_span)
-    envoyerVersSheet("Transactions", ["TX_"+Date.now(), userId, "Retrait", m, op, "REF_"+Math.floor(Math.random()*1000000), new Date().toLocaleString(), "Validé"]);
+  if(m < 1000){
+    afficherToast("❌ Le retrait minimum est de 1 000 FCFA","#ef4444");
+    return;
   }
+  if(m > soldeActuel){
+    afficherToast("❌ Solde insuffisant !","#ef4444");
+    return;
+  }
+  let frais = m * 0.10;
+  let net = m - frais;
+  fermerModales();
+  const msg = encodeURIComponent(`Bonjour, je souhaite effectuer un retrait de ${m} FCFA (Frais 10% : ${frais} FCFA, Montant net : ${net} FCFA). Mon ID : ${userId} (${nomUtilisateur}).`);
+  window.open(`https://wa.me/2250173110743?text=${msg}`, '_blank');
+  afficherToast("📱 Demande de retrait ouverte sur WhatsApp !","#f59e0b");
+}
+
+function fermerModalSolde(){
+  document.getElementById('modal-solde-insuffisant').classList.add('hidden');
 }
 
 function basculerBox(idVoulu){
@@ -384,19 +415,38 @@ function basculerBox(idVoulu){
 
 function creerEtPartagerDefi(){
   const mise=parseInt(document.getElementById('montant-mise').value);
-  if(mise>soldeActuel){afficherToast("❌ Solde insuffisant !","#ef4444");return;}
+  if(isNaN(mise) || mise < 250){
+    afficherToast("❌ La mise minimum pour un défi est de 250 FCFA !","#ef4444");
+    return;
+  }
+  if(mise > soldeActuel){
+    document.getElementById('texte-solde-insuffisant').innerText = `Vous souhaitez créer un défi de ${mise} FCFA mais votre solde est de ${soldeActuel} FCFA. Veuillez recharger.`;
+    document.getElementById('modal-solde-insuffisant').classList.remove('hidden');
+    return;
+  }
   const defiId = "DEF_" + Math.floor(Math.random() * 100000);
   lienActuel=window.location.href.split('#')[0]+'#'+defiId;
   document.getElementById('texte-lien-defi').innerText=lienActuel;
   document.getElementById('zone-lien-partage').classList.remove('hidden');
   afficherToast("✅ Défi créé avec succès !","#22c55e");
-
-  // Enregistrement dans Google Sheet (Table "Défis_Lobby")[span_7](start_span)[span_7](end_span)[span_8](start_span)[span_8](end_span)
-  envoyerVersSheet("Défis_Lobby", [defiId, userId, mise, "En attente", "", nomJeu()]);
+  envoyerVersSheet("Défis_Lobby", [defiId, nomUtilisateur, mise, "En attente", "", nomJeu()]);
+  chargerDefisEnAttente();
 }
 
 function copierLienDefi(){
   navigator.clipboard.writeText(lienActuel).then(()=>afficherToast("📋 Lien copié !","#22c55e"));
+}
+
+function releverDefi(defiId, mise){
+  if(mise < 250) mise = 250;
+  if(mise > soldeActuel){
+    document.getElementById('texte-solde-insuffisant').innerText = `Ce défi requiert une mise de ${mise} FCFA. Votre solde actuel est insuffisant (${soldeActuel} FCFA).`;
+    document.getElementById('modal-solde-insuffisant').classList.remove('hidden');
+    return;
+  }
+  soldeActuel -= mise; mettreAJourAffichageSolde();
+  afficherToast("⚔️ Défi relevé ! Lancement de la partie...","#22c55e");
+  lancerPartieDefi("Adversaire", mise, 300);
 }
 
 function envoyerMessage(){
@@ -411,7 +461,10 @@ function envoyerMessage(){
 }
 
 function lancerPartieDefi(adversaire,montant,tempsSec){
-  if(montant>soldeActuel){afficherToast("❌ Solde insuffisant !","#ef4444");return;}
+  if(montant > soldeActuel){
+    document.getElementById('modal-solde-insuffisant').classList.remove('hidden');
+    return;
+  }
   miseActuellePartie=montant;soldeActuel-=montant;mettreAJourAffichageSolde();
   modeActuel='defi';tempsParCoupMax=parseInt(tempsSec);
   preparerEcranJeu(`Duel ${nomJeu()} (${adversaire})`,`💰 <strong>Mise :</strong> ${montant} FCFA`);
@@ -435,7 +488,6 @@ function preparerEcranJeu(titreMode,infoMiseHtml){
   ['chess-board','dames-board','scrabble-board','scrabble-controls','domino-board'].forEach(id=>document.getElementById(id).classList.add('hidden'));
 
   const partieId = "PRT_" + Math.floor(Math.random() * 100000);
-  // Enregistrement d'une nouvelle partie lancée (Table "Parties")[span_9](start_span)[span_9](end_span)[span_10](start_span)[span_10](end_span)
   envoyerVersSheet("Parties", [partieId, nomJeu(), nomUtilisateur, modeActuel==='training'?'IA ('+niveauIA+')':'Adversaire', modeActuel, miseActuellePartie, "En cours", new Date().toLocaleString()]);
 
   if(jeuActif==='chess'){
@@ -618,7 +670,6 @@ let scrScores=[0,0],scrPremier=true,scrTour=0,scrPasses=0,scrEch=false,scrEchSel
 function melanger(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
 function piocher(rack){while(rack.length<7&&scrSac.length)rack.push(scrSac.pop());}
 function ajouterLog(msg){scrLog.push(msg);if(scrLog.length>30)scrLog.shift();}
-const motTexte=w=>w.map(q=>scrGrille[q.r][q.c].l).join('');
 
 function initialiserScrabble(){
   scrGrille=Array.from({length:15},()=>Array(15).fill(null));
