@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Game - Plateforme de Jeux</title>
+<link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+<style>
+:root{--bg-color:#0f172a;--card-bg:#1e293b;--accent-color:#3b82f6;--accent-hover:#2563eb;--text-color:#f8fafc;--text-muted:#94a3b8;--success:#22c55e;--danger:#ef4444;--warning:#f59e0b}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+body{background-color:var(--bg-color);color:var(--text-color);padding:8px;display:flex;justify-content:center;align-items:center;min-height:100vh}
+.container{width:100%;max-width:480px}
+.card{background-color:var(--card-bg);border-radius:16px;padding:16px;box-shadow:0 10px 25px rgba(0,0,0,.4);margin-bottom:12px}
+h2{margin-bottom:12px;font-size:1.2rem;text-align:center}
+.form-group{margin-bottom:10px}
+label{display:block;margin-bottom:4px;color:var(--text-muted);font-size:.8rem}
+input,select{width:100%;padding:9px;border-radius:8px;border:1px solid #334155;background-color:#0f172a;color:var(--text-color);font-size:.9rem}
+button{width:100%;padding:10px;border-radius:8px;border:none;background-color:var(--accent-color);color:#fff;font-size:.95rem;font-weight:bold;cursor:pointer;transition:background .2s;margin-bottom:8px}
+button:hover{background-color:var(--accent-hover)}
+.hidden{display:none!important}
+.user-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #334155}
+.wallet-box{text-align:right}
+.wallet{background-color:#064e3b;color:#6ee7b7;padding:5px 10px;border-radius:20px;font-weight:bold;font-size:.85rem;display:inline-block}
+.wallet-actions{display:flex;gap:5px;margin-top:8px}
+.wallet-actions button{padding:5px 8px;font-size:.7rem;margin:0}
+.game-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.game-card{background-color:#334155;padding:10px;border-radius:8px;text-align:center;cursor:pointer;font-size:.9rem;font-weight:500;border:2px solid transparent}
+.game-card.selected{background-color:var(--accent-color);border-color:#93c5fd}
+.menu-btn{background-color:#334155;display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;font-size:.95rem;font-weight:bold;margin-bottom:8px;border:1px solid #475569;cursor:pointer}
+.menu-btn.create-defi{background-color:#1e3a8a;border-color:#3b82f6}
+.menu-btn.wait-defi{background-color:#4338ca;border-color:#6366f1}
+.menu-btn.training{background-color:#065f46;border-color:#10b981}
+.menu-btn.top10{background-color:#78350f;border-color:#f59e0b}
+.menu-btn.chat{background-color:#581c87;border-color:#a855f7}
+.box-container{background-color:#0f172a;padding:12px;border-radius:10px;margin-bottom:12px;border:1px solid #334155}
+.defi-item,.top10-item{background-color:#1e293b;padding:8px;border-radius:8px;margin-top:6px;display:flex;justify-content:space-between;align-items:center;font-size:.85rem}
+.btn-relever{background-color:var(--success);width:auto;padding:5px 10px;font-size:.75rem;margin:0}
+.link-box{background:#111827;padding:8px;border-radius:6px;margin-top:8px;font-size:.75rem;word-break:break-all;border:1px dashed #334155}
+.chat-messages{height:130px;overflow-y:auto;background-color:#111827;padding:8px;border-radius:8px;margin-bottom:8px;font-size:.8rem}
+.chat-msg{margin-bottom:5px}
+.chat-input-group{display:flex;gap:6px}
+#game-screen{display:flex;flex-direction:column;align-items:center;width:100%;background:#111827;padding:12px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.8);border:2px solid #374151}
+.game-info-bar{display:flex;justify-content:space-between;width:100%;background-color:#1f2937;padding:8px 12px;border-radius:8px;margin-bottom:8px;font-size:.8rem;border:1px solid #374151}
+.timer-bar{display:flex;justify-content:space-around;width:100%;background-color:#334155;padding:6px;border-radius:6px;margin-bottom:8px;font-weight:bold;font-size:.85rem}
+.forfeit-bar{width:100%;text-align:center;font-size:.75rem;color:var(--warning);margin-bottom:10px}
+#chess-board{width:100%;max-width:360px;margin-bottom:10px;border-radius:6px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,.6)}
+
+/* DAMES */
+#dames-board{width:100%;max-width:360px;aspect-ratio:1;background-color:#0f766e;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);border:3px solid #1e293b;border-radius:6px;margin-bottom:10px;box-shadow:0 8px 25px rgba(0,0,0,.6)}
+.d-square{display:flex;justify-content:center;align-items:center;position:relative;cursor:pointer}
+.d-light{background-color:#e2e8f0}
+.d-dark{background-color:#0f766e}
+.d-square.selected{background-color:#3b82f6!important}
+.d-piece{width:75%;height:75%;border-radius:50%;box-shadow:0 4px 6px rgba(0,0,0,.4);display:flex;justify-content:center;align-items:center;font-weight:bold;font-size:.9rem;pointer-events:none}
+.d-pion-blanc{background:radial-gradient(circle at 30% 30%,#fff,#cbd5e1);border:2px solid #94a3b8;color:#0f172a}
+.d-pion-noir{background:radial-gradient(circle at 30% 30%,#475569,#0f172a);border:2px solid #1e293b;color:#f8fafc}
+
+/* SCRABBLE */
+#scrabble-board{width:100%;max-width:350px;aspect-ratio:1;display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);gap:1px;background:#78350f;border:3px solid #78350f;border-radius:6px;margin-bottom:8px}
+.s-cell{display:flex;align-items:center;justify-content:center;background:#d97706;font-size:.35rem;font-weight:bold;color:#fff;cursor:pointer}
+.s-tw{background:#dc2626}.s-dw{background:#f43f5e}.s-tl{background:#2563eb}.s-dl{background:#38bdf8}
+.s-tile{position:relative;width:100%;height:100%;background:#fef3c7;color:#78350f;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:bold}
+.s-tile.tmp{background:#fde047;outline:2px solid #22c55e}
+.s-tile small{position:absolute;bottom:0;right:1px;font-size:.35rem}
+#scrabble-controls{width:100%;max-width:360px;text-align:center;margin-bottom:8px}
+#scrabble-score{background:#1f2937;padding:6px;border-radius:6px;margin-bottom:6px;font-size:.75rem}
+.scrabble-rack{display:flex;gap:5px;justify-content:center;background:#334155;padding:8px;border-radius:8px;margin-bottom:8px;min-height:50px}
+.r-tile{position:relative;width:34px;height:34px;background:#fef3c7;color:#78350f;border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:bold;cursor:pointer;font-size:.9rem}
+.r-tile small{position:absolute;bottom:1px;right:2px;font-size:.45rem}
+.r-tile.sel{outline:3px solid #3b82f6}
+.r-tile.ech{outline:3px solid #ef4444;opacity:.6}
+.s-tile.adv{background:#bfdbfe;outline:2px solid #3b82f6}
+#joker-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+#joker-grid button{padding:6px 0;margin:0;font-size:.9rem;background:#fef3c7;color:#78350f}
+
+/* DOMINO */
+#domino-board{width:100%;max-width:380px;background:#064e3b;border:3px solid #022c22;border-radius:12px;padding:10px;margin-bottom:10px;box-shadow:0 10px 30px rgba(0,0,0,.7);text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.domino-line{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;align-items:center;margin-bottom:8px;max-height:100px;overflow-y:auto;padding:6px;width:100%}
+.domino-rack{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;background:#1e293b;padding:8px;border-radius:10px;border:1px solid #334155;width:100%;max-width:380px;margin-bottom:8px}
+.domino-piece {background:#fdfbf7;color:#1e293b;border:2px solid #334155;border-radius:6px;width:36px;height:66px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:2px;box-shadow:0 4px 6px rgba(0,0,0,0.4);cursor:pointer;transition:transform .15s, background .15s;position:relative}
+.domino-piece:hover {transform:scale(1.08);background:#fef3c7}
+.domino-piece::after {content:'';position:absolute;top:50%;left:2px;right:2px;height:2px;background:#cbd5e1}
+.domino-half {width:100%;height:28px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:1px}
+.dot {background:#0f172a;border-radius:50%;width:4.5px;height:4.5px;justify-self:center;align-self:center}
+.dot.hidden {background:transparent}
+
+/* BOUTONS ACTIONS JEU */
+.action-buttons-group{width:100%;max-width:360px;display:flex;gap:8px;margin-top:2px}
+.btn-regles{background-color:#475569;margin:0;flex:1;padding:9px;font-size:.9rem}
+.btn-quitter{background-color:var(--danger);margin:0;flex:1;padding:9px;font-size:.9rem}
+
+/* MODALES */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,.85);display:flex;justify-content:center;align-items:center;z-index:1000}
+.modal-card{background:#1e293b;border:1px solid #334155;padding:20px;border-radius:16px;max-width:360px;width:90%;box-shadow:0 10px 30px rgba(0,0,0,.6);text-align:center}
+.modal-card h3{margin-bottom:10px;font-size:1.1rem;color:#f59e0b}
+.regles-texte{text-align:left;font-size:.8rem;color:var(--text-muted);max-height:240px;overflow-y:auto;padding-right:4px;margin-bottom:12px;line-height:1.4}
+#toast-notification{position:fixed;bottom:15px;left:50%;transform:translateX(-50%) translateY(100px);background:#0f172a;color:#f8fafc;border:1px solid #3b82f6;padding:10px 16px;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.6);font-size:.85rem;z-index:2000;transition:transform .3s ease,opacity .3s ease;opacity:0;text-align:center;max-width:90%}
+#toast-notification.show{transform:translateX(-50%) translateY(0);opacity:1}
+.firework{position:absolute;width:6px;height:6px;border-radius:50%;box-shadow:0 0 10px #f59e0b,0 0 20px #ef4444,0 0 30px #22c55e;animation:explode 1.5s infinite ease-out}
+.fw1{top:20%;left:20%;animation-delay:0s}.fw2{top:30%;right:25%;animation-delay:.5s}.fw3{bottom:25%;left:30%;animation-delay:1s}
+@keyframes explode{0%{transform:scale(.5);opacity:1}100%{transform:scale(3);opacity:0}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- 1. CONNEXION -->
+<div id="auth-section" class="card">
+<h2>🎮 World Game</h2>
+<div class="form-group"><label>Nom d'utilisateur</label><input type="text" id="username" placeholder="Ex: Nacky" value="Nacky"></div>
+<div class="form-group"><label>Mot de passe</label><input type="password" id="password" placeholder="••••••••" value="1234"></div>
+<button onclick="seConnecter()">Se connecter</button>
+</div>
+
+<!-- 2. LOBBY -->
+<div id="lobby-section" class="card hidden">
+<div class="user-header">
+<div><h3 id="welcome-user" style="font-size:1rem;">Bienvenue</h3><small style="color:var(--text-muted);font-size:.75rem;">En ligne</small></div>
+<div class="wallet-box">
+<small style="display:block;color:var(--text-muted);font-size:.7rem;">Solde de jeux actuel</small>
+<div class="wallet" id="user-wallet">10 000 FCFA</div>
+<div class="wallet-actions">
+<button onclick="ouvrirModalRecharge()" style="background-color:var(--success);">+ Recharger</button>
+<button onclick="ouvrirModalRetrait()" style="background-color:var(--warning);color:#000;">Retrait</button>
+</div>
+</div>
+</div>
+
+<label>Choisissez un jeu :</label>
+<div class="game-grid">
+<div class="game-card" id="card-chess" onclick="selectionnerJeu('chess')">♟️ Échecs</div>
+<div class="game-card selected" id="card-dames" onclick="selectionnerJeu('dames')">🔴 Dames</div>
+<div class="game-card" id="card-scrabble" onclick="selectionnerJeu('scrabble')">📝 Scrabble</div>
+<div class="game-card" id="card-domino" onclick="selectionnerJeu('domino')">🎲 Domino</div>
+</div>
+
+<button class="menu-btn create-defi" onclick="basculerBox('creation-defi-box')"><span>➕ Création de Défi</span><span>▼</span></button>
+<div id="creation-defi-box" class="box-container hidden">
+<div class="form-group"><label>Votre mise (FCFA)</label><input type="number" id="montant-mise" value="1000"></div>
+<div class="form-group"><label>Temps par coup (Chrono)</label>
+<select id="temps-defi">
+<option value="10">10 Secondes</option><option value="30">30 Secondes</option><option value="60">1 Minute</option><option value="180">3 Minutes</option><option value="300" selected>5 Minutes</option>
+</select></div>
+<button onclick="creerEtPartagerDefi()">Générer le lien du défi</button>
+<div id="zone-lien-partage" class="hidden">
+<label style="color:var(--success);margin-top:6px;">Lien à partager :</label>
+<div id="texte-lien-defi" class="link-box"></div>
+<button onclick="copierLienDefi()" style="background-color:var(--success);margin-top:6px;">📋 Copier le lien</button>
+</div>
+</div>
+
+<button class="menu-btn wait-defi" onclick="basculerBox('defis-attente-box')"><span>⏳ Défis en Attente</span><span>▼</span></button>
+<div id="defis-attente-box" class="box-container hidden">
+<div class="defi-item">
+<div><strong>Joueur_002</strong><br><small style="color:var(--success);">Mise : 2 000 FCFA (30s/coup)</small></div>
+<button class="btn-relever" onclick="lancerPartieDefi('Joueur_002',2000,30)">Relever</button>
+</div>
+</div>
+
+<button class="menu-btn training" onclick="basculerBox('salle-entrainement-box')"><span>🤖 Salle d'Entraînement (Vs IA)</span><span>▼</span></button>
+<div id="salle-entrainement-box" class="box-container hidden">
+<div class="form-group"><label>Niveau de l'ordinateur</label>
+<select id="niveau-ia"><option value="facile">Facile</option><option value="moyen">Moyen</option><option value="difficile">Difficile</option><option value="tres-difficile" selected>Très difficile</option></select></div>
+<div class="form-group"><label>Temps par coup (Chrono)</label>
+<select id="temps-entrainement"><option value="10">10 Secondes</option><option value="30" selected>30 Secondes</option><option value="60">1 Minute</option><option value="180">3 Minutes</option><option value="300">5 Minutes</option></select></div>
+<button onclick="lancerPartieEntrainement()" style="background-color:#10b981;">Lancer l'entraînement</button>
+</div>
+
+<button class="menu-btn top10" onclick="basculerBox('top10-box')"><span>🏆 Top 10 des Meilleurs Joueurs</span><span>▼</span></button>
+<div id="top10-box" class="box-container hidden">
+<div class="top10-item"><span>1. 🥇 Koffi_Chess</span> <strong>125 000 FCFA</strong></div>
+<div class="top10-item"><span>2. 🥈 Nacky_Pro</span> <strong>98 000 FCFA</strong></div>
+<div class="top10-item"><span>3. 🥉 Awa_Queen</span> <strong>85 500 FCFA</strong></div>
+<div class="top10-item"><span>4. 🎖️ Yao_Master</span> <strong>72 000 FCFA</strong></div>
+<div class="top10-item"><span>5. 🎖️ Kouassi_99</span> <strong>64 200 FCFA</strong></div>
+</div>
+
+<button class="menu-btn chat" onclick="basculerBox('chat-box')"><span>💬 Salon de Chat Public</span><span>▼</span></button>
+<div id="chat-box" class="box-container hidden">
+<div id="chat-messages" class="chat-messages">
+<div class="chat-msg"><strong>Koffi_Chess :</strong> Qui est chaud pour un défi aux Dames ?</div>
+<div class="chat-msg"><strong>Awa_Queen :</strong> Je relève le défi !</div>
+</div>
+<div class="chat-input-group">
+<input type="text" id="chat-input" placeholder="Écrire un message...">
+<button onclick="envoyerMessage()" style="width:auto;padding:8px 12px;margin:0;">Envoyer</button>
+</div>
+</div>
+</div>
+
+<!-- 3. ÉCRAN DE JEU -->
+<div id="game-screen" class="hidden">
+<div class="game-info-bar">
+<span>⚔️ <strong id="mode-jeu-info">Mode : Jeu</strong></span>
+<span id="info-mise" style="color:var(--success);">💰 <strong>Mise :</strong> 0 FCFA</span>
+</div>
+<div class="timer-bar"><span>⏳ Tour : <strong id="chrono-tour">00:00</strong></span></div>
+<div class="forfeit-bar">⚠️ Forfaits (Max 5) — J1: <span id="forfait-j1">0</span>/5 | J2: <span id="forfait-j2">0</span>/5</div>
+
+<div id="chess-board" class="hidden"></div>
+<div id="dames-board" class="hidden"></div>
+<div id="scrabble-board" class="hidden"></div>
+<div id="scrabble-controls" class="hidden">
+<div id="scrabble-score"></div>
+<div class="scrabble-rack" id="scrabble-rack"></div>
+<button onclick="validerMotScrabble()" style="background-color:var(--success);">Valider le mot</button>
+<button onclick="rappelerLettres()" style="background-color:#475569;">Reprendre mes lettres</button>
+<button id="btn-echange" onclick="echangerLettres()" style="background-color:#7c3aed;">Échanger des lettres</button>
+<button onclick="passerTourScrabble()" style="background-color:var(--warning);color:#000;">Passer mon tour</button>
+</div>
+
+<!-- PLATEAU DOMINO -->
+<div id="domino-board" class="hidden">
+<div style="font-size:0.8rem; color:#94a3b8; margin-bottom:4px;">Plateau (Extrémités : <span id="domino-extremites" style="color:#fde047; font-weight:bold;">-</span>)</div>
+<div class="domino-line" id="domino-table"></div>
+<div style="font-size:0.8rem; color:#94a3b8; margin-top:6px; margin-bottom:2px;">Vos dominos (<span id="domino-count-user">0</span>) — Adversaire : <span id="domino-count-adv">0</span></div>
+<div class="domino-rack" id="domino-user-rack"></div>
+<button onclick="dominoPiocherOuPasser()" style="background-color:var(--warning); color:#000; margin-top:4px; padding:8px;">Piocher / Passer mon tour</button>
+</div>
+
+<div class="action-buttons-group">
+<button class="btn-regles" onclick="ouvrirModalRegles()">📖 Règles & Journal</button>
+<button class="btn-quitter" onclick="retourLobby()">Quitter</button>
+</div>
+</div>
+</div>
+
+<!-- MODALE REGLES & JOURNAL -->
+<div id="modal-regles" class="modal-overlay hidden"><div class="modal-card">
+<h3 id="regles-titre">Règles & Historique</h3>
+<div class="regles-texte" id="regles-contenu"></div>
+<button onclick="fermerModalRegles()" style="background-color:var(--accent-color); margin:0;">Fermer</button>
+</div></div>
+
+<!-- MODALE RECHARGE -->
+<div id="modal-recharge" class="modal-overlay hidden"><div class="modal-card">
+<h3>💳 Recharger mon solde</h3>
+<div class="form-group" style="text-align:left;"><label>Opérateur Mobile</label>
+<select id="operateur-recharge"><option value="Wave">🌊 Wave</option><option value="Orange Money">🟠 Orange Money</option><option value="MTN Money">🟡 MTN Mobile Money</option><option value="Moov Money">🔵 Moov Money</option></select></div>
+<div class="form-group" style="text-align:left;"><label>Montant (FCFA)</label><input type="number" id="input-montant-recharge" value="5000"></div>
+<button onclick="validerRecharge()" style="background-color:var(--success);">Valider le dépôt</button>
+<button onclick="fermerModales()" style="background-color:#475569;margin:0;">Annuler</button>
+</div></div>
+
+<!-- MODALE RETRAIT -->
+<div id="modal-retrait" class="modal-overlay hidden"><div class="modal-card">
+<h3>💸 Demande de Retrait</h3>
+<div class="form-group" style="text-align:left;"><label>Opérateur Mobile</label>
+<select id="operateur-retrait"><option value="Wave">🌊 Wave</option><option value="Orange Money">🟠 Orange Money</option><option value="MTN Money">🟡 MTN Mobile Money</option><option value="Moov Money">🔵 Moov Money</option></select></div>
+<div class="form-group" style="text-align:left;"><label>Montant à retirer (FCFA)</label><input type="number" id="input-montant-retrait" value="2000"></div>
+<button onclick="validerRetrait()" style="background-color:var(--warning);color:#000;">Confirmer le retrait</button>
+<button onclick="fermerModales()" style="background-color:#475569;margin:0;">Annuler</button>
+</div></div>
+
+<!-- MODALE VICTOIRE -->
+<div id="victoire-modal" class="modal-overlay hidden">
+<div class="modal-card" style="position:relative;overflow:hidden;border-color:#f59e0b;">
+<div class="firework fw1"></div><div class="firework fw2"></div><div class="firework fw3"></div>
+<h1 style="font-size:2.5rem;margin-bottom:5px;">🏆</h1>
+<h3 id="titre-victoire" style="color:#f59e0b;margin-bottom:8px;">VICTOIRE !</h3>
+<p id="texte-victoire" style="font-size:.85rem;color:var(--text-muted);margin-bottom:15px;"></p>
+<button onclick="fermerModalVictoire()" style="background-color:var(--success);margin:0;">Continuer</button>
+</div>
+</div>
+
+<!-- MODALE JOKER -->
+<div id="modal-joker" class="modal-overlay hidden"><div class="modal-card">
+<h3>🃏 Joker</h3>
+<p style="color:var(--text-muted);font-size:.8rem;margin-bottom:10px;">Choisissez la lettre que ce joker représente :</p>
+<div id="joker-grid"></div>
+<button onclick="annulerJoker()" style="background-color:#475569;margin:10px 0 0;">Annuler</button>
+</div></div>
+
+<div id="toast-notification">Notification</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+
+<script>
+// URL de votre Web App Google Apps Script
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby4bueUdcZkH0OT7pTPOfXWt4hjotFcepwIMYmXyAHRKi03IJvahQwZquV7H6-3ngdw/exec";
+
+function envoyerVersSheet(tableName, rowValues) {
+  const payload = { table: tableName, values: rowValues };
+  fetch(WEB_APP_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  }).catch(err => console.error("Erreur Google Sheet :", err));
+}
+
+let jeuActif='domino',gameChess=null,boardChess=null;
+let damesGrille=[],tourDames='blanc',pionSelectionne=null;
+let modeActuel='training',niveauIA='moyen';
+let soldeActuel=10000,miseActuellePartie=0,tempsParCoupMax=300,tempsActuel=300;
+let forfaitsJ1=0,forfaitsJ2=0,intervalTimer=null,nomUtilisateur="Nacky",userId="USR_001",lienActuel="",partieEstTerminee=false;
+
+const REGLES_JEUX = {
+  chess: `<strong>♟️ Règles des Échecs :</strong><br><br>• Objectif : Mettre le roi adverse en échec et mat.`,
+  dames: `<strong>🔴 Règles du Jeu de Dames :</strong><br><br>• La capture par saut est obligatoire.`,
+  scrabble: `<strong>📝 Règles du Scrabble :</strong><br><br>• Formez des mots croisés. +50 pts pour un Scrabble.<br><br><strong>📜 Historique :</strong><br>`,
+  domino: `<strong>🎲 Règles du Domino :</strong><br><br>• Posez tous vos dominos en faisant correspondre les extrémités.`
+};
+
+function ouvrirModalRegles(){
+  document.getElementById('regles-titre').innerText = "Règles : " + nomJeu();
+  let contenuHtml = REGLES_JEUX[jeuActif] || "Règles non disponibles.";
+  if(jeuActif==='scrabble'){
+    let hist = scrLog.length ? scrLog.map(m=>`• ${m}`).join('<br>') : "Aucun coup joué.";
+    contenuHtml += `<div style="margin-top:8px; background:#111827; padding:8px; border-radius:6px; font-size:0.75rem;">${hist}</div>`;
+  }
+  document.getElementById('regles-contenu').innerHTML = contenuHtml;
+  document.getElementById('modal-regles').classList.remove('hidden');
+}
+function fermerModalRegles(){ document.getElementById('modal-regles').classList.add('hidden'); }
+function nomJeu(){return jeuActif==='scrabble'?'Scrabble':jeuActif==='chess'?'Échecs':jeuActif==='domino'?'Domino':'Dames';}
+
+function selectionnerJeu(jeu){
+  jeuActif=jeu;
+  document.querySelectorAll('.game-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('card-'+jeu).classList.add('selected');
+}
+
+function afficherToast(message,couleur="#3b82f6"){
+  const t=document.getElementById('toast-notification');
+  t.innerText=message;t.style.borderColor=couleur;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function seConnecter(){
+  const nom=document.getElementById('username').value.trim();
+  if(nom===""){afficherToast("Veuillez entrer un nom d'utilisateur !","#ef4444");return;}
+  nomUtilisateur=nom;
+  userId="USR_" + Math.floor(Math.random() * 90000 + 10000);
+  document.getElementById('welcome-user').innerText="Hello, "+nom;
+  document.getElementById('auth-section').classList.add('hidden');
+  document.getElementById('lobby-section').classList.remove('hidden');
+  mettreAJourAffichageSolde();
+
+  // Enregistrement de l'utilisateur dans Google Sheet (Table "Utilisateurs")[span_4](start_span)[span_4](end_span)
+  envoyerVersSheet("Utilisateurs", [userId, nomUtilisateur, nom.toLowerCase()+"@worldgame.com", "1234", soldeActuel, "Actif"]);
+}
+
+function mettreAJourAffichageSolde(){document.getElementById('user-wallet').innerText=soldeActuel.toLocaleString()+" FCFA";}
+function ouvrirModalRecharge(){document.getElementById('modal-recharge').classList.remove('hidden');}
+function ouvrirModalRetrait(){document.getElementById('modal-retrait').classList.remove('hidden');}
+function fermerModales(){
+  document.getElementById('modal-recharge').classList.add('hidden');
+  document.getElementById('modal-retrait').classList.add('hidden');
+}
+
+function validerRecharge(){
+  const op=document.getElementById('operateur-recharge').value;
+  const m=Number(document.getElementById('input-montant-recharge').value);
+  if(m&&m>0){
+    soldeActuel+=m;mettreAJourAffichageSolde();fermerModales();
+    afficherToast(`✅ Dépôt de ${m.toLocaleString()} FCFA réussi via ${op} !`,"#22c55e");
+    // Enregistrement dans Google Sheet (Table "Transactions")[span_5](start_span)[span_5](end_span)
+    envoyerVersSheet("Transactions", ["TX_"+Date.now(), userId, "Recharge", m, op, "REF_"+Math.floor(Math.random()*1000000), new Date().toLocaleString(), "Validé"]);
+  } else afficherToast("❌ Montant invalide.","#ef4444");
+}
+
+function validerRetrait(){
+  const op=document.getElementById('operateur-retrait').value;
+  const m=Number(document.getElementById('input-montant-retrait').value);
+  if(m>soldeActuel) afficherToast("❌ Solde insuffisant !","#ef4444");
+  else if(m<=0) afficherToast("❌ Montant invalide.","#ef4444");
+  else{
+    soldeActuel-=m;mettreAJourAffichageSolde();fermerModales();
+    afficherToast(`💸 Retrait de ${m.toLocaleString()} FCFA validé via ${op} !`,"#f59e0b");
+    // Enregistrement dans Google Sheet (Table "Transactions")[span_6](start_span)[span_6](end_span)
+    envoyerVersSheet("Transactions", ["TX_"+Date.now(), userId, "Retrait", m, op, "REF_"+Math.floor(Math.random()*1000000), new Date().toLocaleString(), "Validé"]);
+  }
+}
+
+function basculerBox(idVoulu){
+  ['creation-defi-box','defis-attente-box','salle-entrainement-box','top10-box','chat-box'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(id===idVoulu) el.classList.toggle('hidden'); else el.classList.add('hidden');
+  });
+}
+
+function creerEtPartagerDefi(){
+  const mise=parseInt(document.getElementById('montant-mise').value);
+  if(mise>soldeActuel){afficherToast("❌ Solde insuffisant !","#ef4444");return;}
+  const defiId = "DEF_" + Math.floor(Math.random() * 100000);
+  lienActuel=window.location.href.split('#')[0]+'#'+defiId;
+  document.getElementById('texte-lien-defi').innerText=lienActuel;
+  document.getElementById('zone-lien-partage').classList.remove('hidden');
+  afficherToast("✅ Défi créé avec succès !","#22c55e");
+
+  // Enregistrement dans Google Sheet (Table "Défis_Lobby")[span_7](start_span)[span_7](end_span)[span_8](start_span)[span_8](end_span)
+  envoyerVersSheet("Défis_Lobby", [defiId, userId, mise, "En attente", "", nomJeu()]);
+}
+
+function copierLienDefi(){
+  navigator.clipboard.writeText(lienActuel).then(()=>afficherToast("📋 Lien copié !","#22c55e"));
+}
+
+function envoyerMessage(){
+  const input=document.getElementById('chat-input');
+  const texte=input.value.trim();
+  if(texte==="")return;
+  const box=document.getElementById('chat-messages');
+  const d=document.createElement('div');d.className='chat-msg';
+  const s=document.createElement('strong');s.textContent=nomUtilisateur+' : ';
+  d.appendChild(s);d.appendChild(document.createTextNode(texte));
+  box.appendChild(d);input.value="";box.scrollTop=box.scrollHeight;
+}
+
+function lancerPartieDefi(adversaire,montant,tempsSec){
+  if(montant>soldeActuel){afficherToast("❌ Solde insuffisant !","#ef4444");return;}
+  miseActuellePartie=montant;soldeActuel-=montant;mettreAJourAffichageSolde();
+  modeActuel='defi';tempsParCoupMax=parseInt(tempsSec);
+  preparerEcranJeu(`Duel ${nomJeu()} (${adversaire})`,`💰 <strong>Mise :</strong> ${montant} FCFA`);
+}
+
+function lancerPartieEntrainement(){
+  miseActuellePartie=0;modeActuel='training';
+  niveauIA=document.getElementById('niveau-ia').value;
+  tempsParCoupMax=parseInt(document.getElementById('temps-entrainement').value);
+  preparerEcranJeu(`Entraînement ${nomJeu()} (Vs IA)`,`🤖 <strong>Gratuit</strong>`);
+}
+
+function preparerEcranJeu(titreMode,infoMiseHtml){
+  document.getElementById('lobby-section').classList.add('hidden');
+  document.getElementById('game-screen').classList.remove('hidden');
+  document.getElementById('mode-jeu-info').innerText="Mode : "+titreMode;
+  document.getElementById('info-mise').innerHTML=infoMiseHtml;
+  tempsActuel=tempsParCoupMax;forfaitsJ1=0;forfaitsJ2=0;partieEstTerminee=false;
+  mettreAJourForfaits();
+
+  ['chess-board','dames-board','scrabble-board','scrabble-controls','domino-board'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+
+  const partieId = "PRT_" + Math.floor(Math.random() * 100000);
+  // Enregistrement d'une nouvelle partie lancée (Table "Parties")[span_9](start_span)[span_9](end_span)[span_10](start_span)[span_10](end_span)
+  envoyerVersSheet("Parties", [partieId, nomJeu(), nomUtilisateur, modeActuel==='training'?'IA ('+niveauIA+')':'Adversaire', modeActuel, miseActuellePartie, "En cours", new Date().toLocaleString()]);
+
+  if(jeuActif==='chess'){
+    document.getElementById('chess-board').classList.remove('hidden');
+    gameChess=new Chess();
+    boardChess=Chessboard('chess-board',{
+      draggable:true,position:'start',
+      pieceTheme:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
+      onDrop:function(s,t){
+        let m=gameChess.move({from:s,to:t,promotion:'q'});
+        if(m===null)return 'snapback';
+        if(verifierFinDePartieChess())return;
+        tempsActuel=tempsParCoupMax;
+      }
+    });
+  } else if(jeuActif==='scrabble'){
+    document.getElementById('scrabble-board').classList.remove('hidden');
+    document.getElementById('scrabble-controls').classList.remove('hidden');
+    initialiserScrabble();
+  } else if(jeuActif==='domino'){
+    document.getElementById('domino-board').classList.remove('hidden');
+    initialiserDomino();
+  } else {
+    document.getElementById('dames-board').classList.remove('hidden');
+    initialiserPlateauDames();afficherPlateauDames();
+  }
+  demarrerChronometreTour();
+}
+
+/* ================= JEU DE DOMINO ================= */
+let dominoPioche = [], dominoMainUser = [], dominoMainAdv = [], dominoPlateau = [], dominoTour = 0;
+
+function initialiserDomino(){
+  dominoPioche = []; dominoMainUser = []; dominoMainAdv = []; dominoPlateau = []; dominoTour = 0;
+  for(let i=0; i<=6; i++) for(let j=i; j<=6; j++) dominoPioche.push([i, j]);
+  dominoPioche.sort(() => Math.random() - 0.5);
+  dominoMainUser = dominoPioche.splice(0, 7);
+  dominoMainAdv = dominoPioche.splice(0, 7);
+  afficherDomino();
+}
+
+function creerMoitieDomino(val){
+  const half = document.createElement('div');
+  half.className = 'domino-half';
+  const positionsMap = {0:[], 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8]};
+  const activeDots = positionsMap[val] || [];
+  for(let i=0; i<9; i++){
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (activeDots.includes(i) ? '' : ' hidden');
+    half.appendChild(dot);
+  }
+  return half;
+}
+
+function creerElementDomino(tile){
+  const piece = document.createElement('div');
+  piece.className = 'domino-piece';
+  piece.appendChild(creerMoitieDomino(tile[0]));
+  piece.appendChild(creerMoitieDomino(tile[1]));
+  return piece;
+}
+
+function afficherDomino(){
+  const tableEl = document.getElementById('domino-table');
+  tableEl.innerHTML = '';
+  if(dominoPlateau.length === 0){
+    tableEl.innerHTML = `<span style="color:#94a3b8; font-style:italic; font-size:0.8rem;">Plateau vide. Posez un domino !</span>`;
+    document.getElementById('domino-extremites').innerText = "-";
+  } else {
+    dominoPlateau.forEach(t => tableEl.appendChild(creerElementDomino(t)));
+    document.getElementById('domino-extremites').innerText = `${dominoPlateau[0][0]} et ${dominoPlateau[dominoPlateau.length - 1][1]}`;
+  }
+  const rackEl = document.getElementById('domino-user-rack');
+  rackEl.innerHTML = '';
+  dominoMainUser.forEach((t, idx) => {
+    const tileEl = creerElementDomino(t);
+    tileEl.onclick = () => jouerDominoUser(idx);
+    rackEl.appendChild(tileEl);
+  });
+  document.getElementById('domino-count-user').innerText = dominoMainUser.length;
+  document.getElementById('domino-count-adv').innerText = dominoMainAdv.length;
+}
+
+function jouerDominoUser(idx){
+  if(dominoTour !== 0 || partieEstTerminee) return;
+  const tile = dominoMainUser[idx];
+  if(dominoPlateau.length === 0){
+    dominoPlateau.push(tile); dominoMainUser.splice(idx, 1); finCoupDomino(); return;
+  }
+  const gauche = dominoPlateau[0][0], droite = dominoPlateau[dominoPlateau.length - 1][1];
+  if(tile[0] === gauche || tile[1] === gauche){
+    dominoMainUser.splice(idx, 1);
+    if(tile[1] === gauche) dominoPlateau.unshift(tile); else dominoPlateau.unshift([tile[1], tile[0]]);
+    finCoupDomino();
+  } else if(tile[0] === droite || tile[1] === droite){
+    dominoMainUser.splice(idx, 1);
+    if(tile[0] === droite) dominoPlateau.push(tile); else dominoPlateau.push([tile[1], tile[0]]);
+    finCoupDomino();
+  } else {
+    afficherToast("❌ Ce domino ne correspond à aucune extrémité !", "#ef4444");
+  }
+}
+
+function dominoPiocherOuPasser(){
+  if(dominoTour !== 0 || partieEstTerminee) return;
+  if(dominoPioche.length > 0){
+    dominoMainUser.push(dominoPioche.pop());
+    afficherToast(`📥 Vous avez pioché`, "#3b82f6");
+    afficherDomino();
+  } else {
+    afficherToast("⚠️ Pioche vide ! Tour passé.", "#f59e0b");
+    finCoupDomino();
+  }
+}
+
+function finCoupDomino(){
+  if(dominoMainUser.length === 0){
+    partieEstTerminee = true; clearInterval(intervalTimer);
+    let gain = (modeActuel === 'defi') ? miseActuellePartie * 2 : 0;
+    if(gain > 0) { soldeActuel += gain; mettreAJourAffichageSolde(); }
+    afficherVictoirePro("Blancs (Vous)", gain);
+    return;
+  }
+  dominoTour = 1; tempsActuel = tempsParCoupMax; afficherDomino();
+  if(modeActuel === 'training' && !partieEstTerminee) setTimeout(jouerIADomino, 1000);
+}
+
+function jouerIADomino(){
+  if(partieEstTerminee) return;
+  let indexTrouve = -1, sens = '';
+  if(dominoPlateau.length === 0) indexTrouve = 0;
+  else {
+    const gauche = dominoPlateau[0][0], droite = dominoPlateau[dominoPlateau.length - 1][1];
+    for(let i=0; i<dominoMainAdv.length; i++){
+      let t = dominoMainAdv[i];
+      if(t[0] === gauche || t[1] === gauche){ indexTrouve = i; sens = 'gauche'; break; }
+      if(t[0] === droite || t[1] === droite){ indexTrouve = i; sens = 'droite'; break; }
+    }
+  }
+  if(indexTrouve !== -1){
+    let tile = dominoMainAdv.splice(indexTrouve, 1)[0];
+    if(dominoPlateau.length === 0) dominoPlateau.push(tile);
+    else {
+      const gauche = dominoPlateau[0][0], droite = dominoPlateau[dominoPlateau.length - 1][1];
+      if(sens === 'gauche'){ if(tile[1] === gauche) dominoPlateau.unshift(tile); else dominoPlateau.unshift([tile[1], tile[0]]); }
+      else { if(tile[0] === droite) dominoPlateau.push(tile); else dominoPlateau.push([tile[1], tile[0]]); }
+    }
+    afficherToast("🤖 L'adversaire a posé un domino.", "#3b82f6");
+  } else if(dominoPioche.length > 0){
+    dominoMainAdv.push(dominoPioche.pop());
+  }
+  if(dominoMainAdv.length === 0){
+    partieEstTerminee = true; clearInterval(intervalTimer);
+    afficherVictoirePro("Noirs (Adversaire)", 0);
+    return;
+  }
+  dominoTour = 0; tempsActuel = tempsParCoupMax; afficherDomino();
+}
+
+/* ================= SCRABBLE & DAMES ================= */
+const SCR_DISTRIB={A:9,B:2,C:2,D:3,E:15,F:2,G:2,H:2,I:8,J:1,K:1,L:5,M:3,N:6,O:6,P:2,Q:1,R:6,S:6,T:6,U:6,V:2,W:1,X:1,Y:1,Z:1,'?':2};
+const SCR_VALEURS={A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:10,L:1,M:2,N:1,O:1,P:3,Q:8,R:1,S:1,T:1,U:1,V:4,W:10,X:10,Y:10,Z:10};
+const valLettre=l=>l==='?'?0:(SCR_VALEURS[l]||0);
+const valTuile=t=>t.joker?0:SCR_VALEURS[t.l];
+const SCR_PREMIUMS={};
+(function(){
+  const add=(t,l)=>l.forEach(([r,c])=>SCR_PREMIUMS[r+','+c]=t);
+  add('tw',[[0,0],[0,7],[0,14],[7,0],[7,14],[14,0],[14,7],[14,14]]);
+  add('dw',[[1,1],[2,2],[3,3],[4,4],[1,13],[2,12],[3,11],[4,10],[13,1],[12,2],[11,3],[10,4],[13,13],[12,12],[11,11],[10,10],[7,7]]);
+  add('tl',[[1,5],[1,9],[5,1],[5,5],[5,9],[5,13],[9,1],[9,5],[9,9],[9,13],[13,5],[13,9]]);
+  add('dl',[[0,3],[0,11],[2,6],[2,8],[3,0],[3,7],[3,14],[6,2],[6,6],[6,8],[6,12],[7,3],[7,11],[8,2],[8,6],[8,8],[8,12],[11,0],[11,7],[11,14],[12,6],[12,8],[14,3],[14,11]]);
+})();
+const DICO_TXT=`AH AI AN AS AU BU CA CE CI DE DO DU EH EN ES ET EU FA HA HI IL JE LA LE LI LU MA ME MI NE NI NU ON OR OS OU PI RA RE RI SA SE SI SU TA TE TU UN US VA VU AIR ALE AME ANE ARC ART AVE BAL BAR BEC BEL BIS BOA BON BUT CAR COL CRU CUL DON DOS DUC EAU EST FEU FIL FIN FOU GAZ GEL ICI ILE IRE JEU JUS LAC LIT LOI LUI MAL MAT MER MET MOI MOT MUR NEZ NID NOM NOS NUE NUL OIE OUI PAR PAS PEU PIE PIN PLI POT PRO PUR QUE RAT RIZ ROI RUE SAC SEL SOL SON SOU SUR TAS TEL THE TON TOT TUE UNE VIE VIN VOL VOS VUE AIDE AIME AINE AIRE ALLE AMIE AMIS ANGE ARME ARTS AUTO AVEC AVIS BAIN BALE BANC BASE BEAU BIEN BLEU BOIS BOUE BRAS BRUN BUTS CAFE CAGE CAMP CAVE CHAT CHER CHEZ CIEL CLEF COIN COUP COUR CUIR DAME DANS DATE DEUX DIRE DOIT DONC DOUX EAUX ECHO ELLE ETRE FACE FAIM FAIT FETE FILM FILS FINE FOIS FOND FORT FOUR GARE GENS GOUT GRIS HAUT HIER IDEE JOLI JOUE JOUR JUIN LAIT LAME LENT LEUR LIEN LIEU LIRE LOIN LONG LUNE MAIN MAIS MERE MIEL MIDI MINE MODE MOIS MONT MORT MUSE NAGE NEUF NOIR NOMS NOTE NOUS NUIT OEUF PAIN PAIX PARC PART PAYS PEAU PERE PIED PIRE PLAN PLUS POIL PONT PORT PRIX PURE QUAI QUEL QUOI RANG RARE RIEN RIRE ROBE ROSE ROUE RUSE SAGE SANG SANS SEUL SIEN SOIF SOIR SORT SOUS TANT TARD TETE TOIT TOUR TOUS TOUT TRES TROP TRUC TYPE UNIE VAIN VELO VENT VERS VERT VIDE VITE VIVE VOIX VOUS VRAI YOGA ZONE`;
+const DICO_LISTE=[...new Set(DICO_TXT.split(/\s+/).filter(Boolean))];
+const DICO=new Set(DICO_LISTE);
+
+let scrGrille=[],scrSac=[],scrChevalet=[],scrAdv=[],scrPlaces=[],scrSel=null;
+let scrScores=[0,0],scrPremier=true,scrTour=0,scrPasses=0,scrEch=false,scrEchSel=[],scrLog=[];
+
+function melanger(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+function piocher(rack){while(rack.length<7&&scrSac.length)rack.push(scrSac.pop());}
+function ajouterLog(msg){scrLog.push(msg);if(scrLog.length>30)scrLog.shift();}
+const motTexte=w=>w.map(q=>scrGrille[q.r][q.c].l).join('');
+
+function initialiserScrabble(){
+  scrGrille=Array.from({length:15},()=>Array(15).fill(null));
+  scrSac=[]; for(const l in SCR_DISTRIB) for(let i=0;i<SCR_DISTRIB[l];i++) scrSac.push(l);
+  melanger(scrSac); scrChevalet=[]; scrAdv=[]; scrPlaces=[]; scrSel=null; scrLog=[]; scrScores=[0,0]; scrPremier=true; scrPasses=0;
+  piocher(scrChevalet); piocher(scrAdv); scrTour=0;
+  afficherScrabble();
+}
+
+function afficherScrabble(){
+  const pl=document.getElementById('scrabble-board'); pl.innerHTML='';
+  const labels={tw:'MT',dw:'MD',tl:'LT',dl:'LD'};
+  for(let r=0;r<15;r++) for(let c=0;c<15;c++){
+    const cell=document.createElement('div'); const p=SCR_PREMIUMS[r+','+c];
+    cell.className='s-cell'+(p?' s-'+p:'');
+    const t=scrGrille[r][c];
+    if(t) cell.innerHTML=`<div class="s-tile${t.tmp?' tmp':''}${t.adv?' adv':''}">${t.l}<small>${valTuile(t)}</small></div>`;
+    else if(r===7&&c===7) cell.textContent='★';
+    else if(p) cell.textContent=labels[p];
+    cell.onclick=()=>clicCaseScrabble(r,c);
+    pl.appendChild(cell);
+  }
+  const rack=document.getElementById('scrabble-rack'); rack.innerHTML='';
+  scrChevalet.forEach((l,i)=>{
+    const d=document.createElement('div');
+    d.className='r-tile'+(i===scrSel?' sel':'');
+    d.innerHTML=`${l}<small>${valLettre(l)}</small>`;
+    d.onclick=()=>{scrSel=(scrSel===i?null:i); afficherScrabble();};
+    rack.appendChild(d);
+  });
+  document.getElementById('scrabble-score').innerText=`Vous : ${scrScores[0]} pts | Adv : ${scrScores[1]} pts | Sac : ${scrSac.length}`;
+}
+
+function clicCaseScrabble(r,c){
+  if(scrTour!==0||partieEstTerminee)return;
+  const t=scrGrille[r][c];
+  if(t&&t.tmp){ scrChevalet.push(t.l); scrGrille[r][c]=null; scrSel=null; scrPlaces=scrPlaces.filter(p=>!(p.r===r&&p.c===c)); }
+  else if(!t&&scrSel!==null){
+    const l=scrChevalet.splice(scrSel,1)[0];
+    scrGrille[r][c]={l,tmp:true}; scrPlaces.push({r,c}); scrSel=null;
+  }
+  afficherScrabble();
+}
+
+function rappelerLettres(){
+  scrPlaces.forEach(p=>{ scrChevalet.push(scrGrille[p.r][p.c].l); scrGrille[p.r][p.c]=null; });
+  scrPlaces=[]; scrSel=null; afficherScrabble();
+}
+
+function validerMotScrabble(){
+  if(!scrPlaces.length){ afficherToast("❌ Placez des lettres","#ef4444"); return; }
+  let mot = scrPlaces.map(p=>scrGrille[p.r][p.c].l).join('');
+  let pts = mot.length * 10;
+  scrScores[0] += pts;
+  scrPlaces.forEach(p=>scrGrille[p.r][p.c].tmp=false);
+  scrPlaces=[]; piocher(scrChevalet);
+  ajouterLog(`Vous : ${mot} (+${pts} pts)`);
+  afficherToast(`✨ Mot validé ! +${pts} pts`,"#22c55e");
+  afficherScrabble();
+}
+
+function passerTourScrabble(){ rappelerLettres(); scrPasses++; afficherToast("Tour passé","#f59e0b"); }
+function echangerLettres(){ rappelerLettres(); piocher(scrChevalet); afficherToast("Lettres échangées","#7c3aed"); afficherScrabble(); }
+
+/* DAMES */
+function initialiserPlateauDames(){
+  damesGrille=Array(8).fill(null).map(()=>Array(8).fill(null));
+  tourDames='blanc'; pionSelectionne=null;
+  for(let r=0;r<3;r++) for(let c=0;c<8;c++) if((r+c)%2===1) damesGrille[r][c]={couleur:'noir',dame:false};
+  for(let r=5;r<8;r++) for(let c=0;c<8;c++) if((r+c)%2===1) damesGrille[r][c]={couleur:'blanc',dame:false};
+}
+
+function afficherPlateauDames(){
+  const plateau=document.getElementById('dames-board'); plateau.innerHTML='';
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++){
+    const sq=document.createElement('div'); const isDark=(r+c)%2===1;
+    sq.className=`d-square ${isDark?'d-dark':'d-light'}`;
+    if(pionSelectionne&&pionSelectionne.r===r&&pionSelectionne.c===c) sq.classList.add('selected');
+    const piece=damesGrille[r][c];
+    if(piece){
+      const pd=document.createElement('div');
+      pd.className=`d-piece ${piece.couleur==='blanc'?'d-pion-blanc':'d-pion-noir'}`;
+      if(piece.dame) pd.innerText="👑";
+      sq.appendChild(pd);
+    }
+    if(isDark) sq.onclick=()=>gererClicCaseDames(r,c);
+    plateau.appendChild(sq);
+  }
+}
+
+function gererClicCaseDames(r,c){
+  const piece=damesGrille[r][c];
+  if(pionSelectionne===null){
+    if(piece&&piece.couleur==='blanc'){ pionSelectionne={r,c}; afficherPlateauDames(); }
+  } else {
+    if(!damesGrille[r][c] && Math.abs(r-pionSelectionne.r)===1 && Math.abs(c-pionSelectionne.c)===1){
+      damesGrille[r][c]=damesGrille[pionSelectionne.r][pionSelectionne.c];
+      damesGrille[pionSelectionne.r][pionSelectionne.c]=null;
+      if(r===0) damesGrille[r][c].dame=true;
+      pionSelectionne=null; afficherPlateauDames();
+      setTimeout(tourIADames, 600);
+    } else { pionSelectionne=null; afficherPlateauDames(); }
+  }
+}
+
+function tourIADames(){
+  if(partieEstTerminee) return;
+  let noirs=[];
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++) if(damesGrille[r][c]&&damesGrille[r][c].couleur==='noir') noirs.push({r,c});
+  if(noirs.length){
+    let p=noirs[Math.floor(Math.random()*noirs.length)];
+    let nr=p.r+1, nc=p.c+(Math.random()>0.5?1:-1);
+    if(nr<8&&nc>=0&&nc<8&&!damesGrille[nr][nc]){
+      damesGrille[nr][nc]=damesGrille[p.r][p.c];
+      damesGrille[p.r][p.c]=null;
+      if(nr===7) damesGrille[nr][nc].dame=true;
+    }
+  }
+  afficherPlateauDames();
+}
+
+function verifierFinDePartieChess(){
+  if(gameChess.in_checkmate()){ clearInterval(intervalTimer); afficherVictoirePro("Fin de partie", 0); return true; }
+  return false;
+}
+
+function afficherVictoirePro(vainqueur, gain){
+  document.getElementById('titre-victoire').innerText="PARTIE TERMINÉE !";
+  document.getElementById('texte-victoire').innerText=`Résultat : ${vainqueur}` + (gain>0?` (+${gain} FCFA)`:'');
+  document.getElementById('victoire-modal').classList.remove('hidden');
+}
+
+function fermerModalVictoire(){ document.getElementById('victoire-modal').classList.add('hidden'); retourLobby(); }
+
+function demarrerChronometreTour(){
+  clearInterval(intervalTimer);
+  tempsActuel=tempsParCoupMax;
+  intervalTimer=setInterval(()=>{
+    if(partieEstTerminee) return;
+    tempsActuel--;
+    let m=Math.floor(tempsActuel/60), s=tempsActuel%60;
+    document.getElementById('chrono-tour').innerText=(m<10?"0"+m:m)+":"+(s<10?"0"+s:s);
+    if(tempsActuel<=0){
+      forfaitsJ1++;
+      if(forfaitsJ1>=5){ clearInterval(intervalTimer); afficherToast("🚨 Défaite par forfait temps","#ef4444"); retourLobby(); }
+      else { afficherToast("⏰ Temps écoulé !","#f59e0b"); tempsActuel=tempsParCoupMax; }
+    }
+  },1000);
+}
+
+function mettreAJourForfaits(){
+  document.getElementById('forfait-j1').innerText=forfaitsJ1;
+  document.getElementById('forfait-j2').innerText=forfaitsJ2;
+}
+
+function retourLobby(){
+  clearInterval(intervalTimer);
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('lobby-section').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
