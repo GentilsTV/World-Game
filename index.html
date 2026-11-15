@@ -36,8 +36,8 @@ button:hover{background-color:var(--accent-hover)}
 .defi-item,.top10-item{background-color:#1e293b;padding:8px;border-radius:8px;margin-top:6px;display:flex;justify-content:space-between;align-items:center;font-size:.85rem}
 .btn-relever{background-color:var(--success);width:auto;padding:5px 10px;font-size:.75rem;margin:0}
 .link-box{background:#111827;padding:8px;border-radius:6px;margin-top:8px;font-size:.75rem;word-break:break-all;border:1px dashed #334155}
-.chat-messages{height:130px;overflow-y:auto;background-color:#111827;padding:8px;border-radius:8px;margin-bottom:8px;font-size:.8rem}
-.chat-msg{margin-bottom:5px}
+.chat-messages{height:140px;overflow-y:auto;background-color:#111827;padding:8px;border-radius:8px;margin-bottom:8px;font-size:.8rem}
+.chat-msg{margin-bottom:8px;border-bottom:1px solid #1f2937;padding-bottom:4px}
 .chat-input-group{display:flex;gap:6px}
 #game-screen{display:flex;flex-direction:column;align-items:center;width:100%;background:#111827;padding:12px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.8);border:2px solid #374151}
 .game-info-bar{display:flex;justify-content:space-between;width:100%;background-color:#1f2937;padding:8px 12px;border-radius:8px;margin-bottom:8px;font-size:.8rem;border:1px solid #374151}
@@ -177,7 +177,7 @@ button:hover{background-color:var(--accent-hover)}
 <div id="chat-box" class="box-container hidden">
 <div id="chat-messages" class="chat-messages">
 <div class="chat-msg"><strong>Koffi_Chess :</strong> Qui est chaud pour un défi aux Dames ?</div>
-<div class="chat-msg"><strong>Awa_Queen :</strong> Je relève le défi !</div>
+<div class="chat-msg"><strong>Trabi :</strong> <a href="#DEF_83131" onclick="rejoindreParLienHash('#DEF_83131'); return false;" style="color:#60a5fa; text-decoration:underline;">https://world-game-shhg.onrender.com/#DEF_83131</a></div>
 </div>
 <div class="chat-input-group">
 <input type="text" id="chat-input" placeholder="Écrire un message...">
@@ -223,14 +223,13 @@ button:hover{background-color:var(--accent-hover)}
 </div>
 </div>
 
-<!-- MODALE REGLES & JOURNAL -->
+<!-- MODALES -->
 <div id="modal-regles" class="modal-overlay hidden"><div class="modal-card">
 <h3 id="regles-titre">Règles & Historique</h3>
 <div class="regles-texte" id="regles-contenu"></div>
 <button onclick="fermerModalRegles()" style="background-color:var(--accent-color); margin:0;">Fermer</button>
 </div></div>
 
-<!-- MODALE RECHARGE -->
 <div id="modal-recharge" class="modal-overlay hidden"><div class="modal-card">
 <h3>💳 Recharger mon solde (Wave)</h3>
 <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;">1. Payez via le lien Wave ci-dessous.<br>2. Envoyez la capture sur WhatsApp au <strong>0173110743</strong> pour validation.</p>
@@ -240,15 +239,13 @@ button:hover{background-color:var(--accent-hover)}
 <button onclick="fermerModales()" style="background-color:#475569;margin:0;">Fermer</button>
 </div></div>
 
-<!-- MODALE SOLDE INSUFFISANT / REDIRECTION WAVE -->
 <div id="modal-solde-insuffisant" class="modal-overlay hidden"><div class="modal-card">
 <h3 style="color:var(--danger);">⚠️ Solde insuffisant</h3>
-<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;" id="texte-solde-insuffisant">Vous n'avez pas assez d'argent sur votre compte pour participer à ce défi.</p>
+<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;" id="texte-solde-insuffisant">Vous n'avez pas assez d'argent sur votre compte pour participer à ce défi (Min. 250 FCFA requis).</p>
 <a href="https://pay.wave.com/m/M_dQNxOa48-kSX/c/ci/" target="_blank" style="display:block;background:#0284c7;color:#fff;padding:10px;border-radius:8px;text-decoration:none;font-weight:bold;margin-bottom:10px;">🔗 Recharger via Wave</a>
 <button onclick="fermerModalSolde()" style="background-color:#475569;margin:0;">Fermer</button>
 </div></div>
 
-<!-- MODALE RETRAIT (1000 FCFA MIN + 10% FRAIS) -->
 <div id="modal-retrait" class="modal-overlay hidden"><div class="modal-card">
 <h3>💸 Demande de Retrait (Min. 1000 FCFA)</h3>
 <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;">Frais de retrait : <strong>10%</strong>.<br>Les retraits s'effectuent via WhatsApp au <strong>0173110743</strong>.</p>
@@ -257,7 +254,6 @@ button:hover{background-color:var(--accent-hover)}
 <button onclick="fermerModales()" style="background-color:#475569;margin:0;">Annuler</button>
 </div></div>
 
-<!-- MODALE VICTOIRE -->
 <div id="victoire-modal" class="modal-overlay hidden">
 <div class="modal-card" style="position:relative;overflow:hidden;border-color:#f59e0b;">
 <div class="firework fw1"></div><div class="firework fw2"></div><div class="firework fw3"></div>
@@ -298,8 +294,8 @@ function chargerDefisEnAttente() {
         if(defi.Statut_Defi === "En attente") {
           const item = document.createElement('div');
           item.className = "defi-item";
-          item.innerHTML = `<div><strong>${defi.Createur_ID}</strong><br><small style="color:var(--success);">Jeu : ${defi.Jeu || 'Général'} | Mise : ${defi.Montant_Mise} FCFA</small></div>
-                            <button class="btn-relever" onclick="releverDefi('${defi.ID_Defi}', ${defi.Montant_Mise})">Relever</button>`;
+          item.innerHTML = `<div><strong>${defi.Createur_ID}</strong><br><small style="color:var(--success);">Jeu : ${defi.Jeu || 'Dames'} | Mise : ${defi.Montant_Mise} FCFA</small></div>
+                            <button class="btn-relever" onclick="releverDefi('${defi.ID_Defi}', ${defi.Montant_Mise}, '${defi.Jeu || 'dames'}')">Relever</button>`;
           container.appendChild(item);
         }
       });
@@ -309,7 +305,7 @@ function chargerDefisEnAttente() {
   .catch(err => console.error("Erreur chargement défis :", err));
 }
 
-let jeuActif='domino',gameChess=null,boardChess=null;
+let jeuActif='dames',gameChess=null,boardChess=null;
 let damesGrille=[],tourDames='blanc',pionSelectionne=null;
 let modeActuel='training',niveauIA='moyen';
 let soldeActuel=0,miseActuellePartie=0,tempsParCoupMax=300,tempsActuel=300;
@@ -318,18 +314,13 @@ let forfaitsJ1=0,forfaitsJ2=0,intervalTimer=null,nomUtilisateur="Nacky",userId="
 const REGLES_JEUX = {
   chess: `<strong>♟️ Règles des Échecs :</strong><br><br>• Objectif : Mettre le roi adverse en échec et mat.`,
   dames: `<strong>🔴 Règles du Jeu de Dames :</strong><br><br>• La capture par saut est obligatoire.`,
-  scrabble: `<strong>📝 Règles du Scrabble :</strong><br><br>• Formez des mots croisés. +50 pts pour un Scrabble.<br><br><strong>📜 Historique :</strong><br>`,
+  scrabble: `<strong>📝 Règles du Scrabble :</strong><br><br>• Formez des mots croisés. +50 pts pour un Scrabble.<br>`,
   domino: `<strong>🎲 Règles du Domino :</strong><br><br>• Posez tous vos dominos en faisant correspondre les extrémités.`
 };
 
 function ouvrirModalRegles(){
   document.getElementById('regles-titre').innerText = "Règles : " + nomJeu();
-  let contenuHtml = REGLES_JEUX[jeuActif] || "Règles non disponibles.";
-  if(jeuActif==='scrabble'){
-    let hist = scrLog.length ? scrLog.map(m=>`• ${m}`).join('<br>') : "Aucun coup joué.";
-    contenuHtml += `<div style="margin-top:8px; background:#111827; padding:8px; border-radius:6px; font-size:0.75rem;">${hist}</div>`;
-  }
-  document.getElementById('regles-contenu').innerHTML = contenuHtml;
+  document.getElementById('regles-contenu').innerHTML = REGLES_JEUX[jeuActif] || "Règles non disponibles.";
   document.getElementById('modal-regles').classList.remove('hidden');
 }
 function fermerModalRegles(){ document.getElementById('modal-regles').classList.add('hidden'); }
@@ -352,7 +343,7 @@ function seConnecter(){
   if(nom===""){afficherToast("Veuillez entrer un nom d'utilisateur !","#ef4444");return;}
   nomUtilisateur=nom;
   userId="USR_" + Math.floor(Math.random() * 90000 + 10000);
-  soldeActuel = 0; // Solde de départ 0 FCFA pour les nouveaux comptes
+  soldeActuel = 0;
   document.getElementById('welcome-user').innerText="Hello, "+nom;
   document.getElementById('auth-section').classList.add('hidden');
   document.getElementById('lobby-section').classList.remove('hidden');
@@ -361,6 +352,46 @@ function seConnecter(){
   
   setInterval(chargerDefisEnAttente, 5000);
   chargerDefisEnAttente();
+
+  // Vérifier si un lien de défi a été ouvert directement via l'URL (ex: #DEF_83131)
+  setTimeout(verifierLienURLHash, 1000);
+}
+
+function verifierLienURLHash(){
+  const hash = window.location.hash;
+  if(hash && hash.includes("DEF_")){
+    rejoindreParLienHash(hash);
+  }
+}
+
+function rejoindreParLienHash(hashStr){
+  const defiId = hashStr.replace("#", "");
+  afficherToast(`🔍 Recherche du défi ${defiId}...`, "#3b82f6");
+  
+  fetch(WEB_APP_URL + "?table=Défis_Lobby")
+  .then(res => res.json())
+  .then(res => {
+    if(res.status === "success" && res.data){
+      const defiTrouve = res.data.find(d => d.ID_Defi === defiId);
+      if(defiTrouve){
+        let mise = Number(defiTrouve.Montant_Mise) || 250;
+        let jeu = (defiTrouve.Jeu || "dames").toLowerCase();
+        if(jeu.includes("échecs") || jeu.includes("chess")) jeu = "chess";
+        else if(jeu.includes("scrabble")) jeu = "scrabble";
+        else if(jeu.includes("domino")) jeu = "domino";
+        else jeu = "dames";
+
+        selectionnerJeu(jeu);
+        releverDefi(defiId, mise, jeu);
+      } else {
+        afficherToast("❌ Ce défi n'existe plus ou a déjà été pris.", "#ef4444");
+      }
+    }
+  })
+  .catch(err => {
+    // Fallback si l'API met du temps à répondre
+    releverDefi(defiId, 250, 'dames');
+  });
 }
 
 function mettreAJourAffichageSolde(){document.getElementById('user-wallet').innerText=soldeActuel.toLocaleString()+" FCFA";}
@@ -424,29 +455,40 @@ function creerEtPartagerDefi(){
     document.getElementById('modal-solde-insuffisant').classList.remove('hidden');
     return;
   }
-  const defiId = "DEF_" + Math.floor(Math.random() * 100000);
-  lienActuel=window.location.href.split('#')[0]+'#'+defiId;
-  document.getElementById('texte-lien-defi').innerText=lienActuel;
+  const defiId = "DEF_" + Math.floor(Math.random() * 90000 + 10000);
+  const baseURL = window.location.href.split('#')[0];
+  lienActuel = baseURL + '#' + defiId;
+  document.getElementById('texte-lien-defi').innerText = lienActuel;
   document.getElementById('zone-lien-partage').classList.remove('hidden');
   afficherToast("✅ Défi créé avec succès !","#22c55e");
   envoyerVersSheet("Défis_Lobby", [defiId, nomUtilisateur, mise, "En attente", "", nomJeu()]);
+  
+  // Publier automatiquement le lien cliquable dans le chat public
+  publierLienDansChat(defiId, lienActuel);
   chargerDefisEnAttente();
+}
+
+function publierLienDansChat(defiId, lien){
+  const box = document.getElementById('chat-messages');
+  const d = document.createElement('div'); d.className = 'chat-msg';
+  d.innerHTML = `<strong>${nomUtilisateur} :</strong> <a href="#${defiId}" onclick="rejoindreParLienHash('#${defiId}'); return false;" style="color:#60a5fa; text-decoration:underline;">Rejoindre mon défi (${nomJeu()} - ${document.getElementById('montant-mise').value}F)</a>`;
+  box.appendChild(d); box.scrollTop = box.scrollHeight;
 }
 
 function copierLienDefi(){
   navigator.clipboard.writeText(lienActuel).then(()=>afficherToast("📋 Lien copié !","#22c55e"));
 }
 
-function releverDefi(defiId, mise){
+function releverDefi(defiId, mise, jeuNom){
   if(mise < 250) mise = 250;
   if(mise > soldeActuel){
-    document.getElementById('texte-solde-insuffisant').innerText = `Ce défi requiert une mise de ${mise} FCFA. Votre solde actuel est insuffisant (${soldeActuel} FCFA).`;
+    document.getElementById('texte-solde-insuffisant').innerText = `Ce défi requiert une mise de ${mise} FCFA. Votre solde actuel est insuffisant (${soldeActuel} FCFA). Redirection vers Wave...`;
     document.getElementById('modal-solde-insuffisant').classList.remove('hidden');
     return;
   }
   soldeActuel -= mise; mettreAJourAffichageSolde();
   afficherToast("⚔️ Défi relevé ! Lancement de la partie...","#22c55e");
-  lancerPartieDefi("Adversaire", mise, 300);
+  lancerPartieDefi("Adversaire en ligne", mise, 300);
 }
 
 function envoyerMessage(){
@@ -455,8 +497,7 @@ function envoyerMessage(){
   if(texte==="")return;
   const box=document.getElementById('chat-messages');
   const d=document.createElement('div');d.className='chat-msg';
-  const s=document.createElement('strong');s.textContent=nomUtilisateur+' : ';
-  d.appendChild(s);d.appendChild(document.createTextNode(texte));
+  d.innerHTML = `<strong>${nomUtilisateur} :</strong> ${texte}`;
   box.appendChild(d);input.value="";box.scrollTop=box.scrollHeight;
 }
 
@@ -660,12 +701,9 @@ const SCR_PREMIUMS={};
   add('tl',[[1,5],[1,9],[5,1],[5,5],[5,9],[5,13],[9,1],[9,5],[9,9],[9,13],[13,5],[13,9]]);
   add('dl',[[0,3],[0,11],[2,6],[2,8],[3,0],[3,7],[3,14],[6,2],[6,6],[6,8],[6,12],[7,3],[7,11],[8,2],[8,6],[8,8],[8,12],[11,0],[11,7],[11,14],[12,6],[12,8],[14,3],[14,11]]);
 })();
-const DICO_TXT=`AH AI AN AS AU BU CA CE CI DE DO DU EH EN ES ET EU FA HA HI IL JE LA LE LI LU MA ME MI NE NI NU ON OR OS OU PI RA RE RI SA SE SI SU TA TE TU UN US VA VU AIR ALE AME ANE ARC ART AVE BAL BAR BEC BEL BIS BOA BON BUT CAR COL CRU CUL DON DOS DUC EAU EST FEU FIL FIN FOU GAZ GEL ICI ILE IRE JEU JUS LAC LIT LOI LUI MAL MAT MER MET MOI MOT MUR NEZ NID NOM NOS NUE NUL OIE OUI PAR PAS PEU PIE PIN PLI POT PRO PUR QUE RAT RIZ ROI RUE SAC SEL SOL SON SOU SUR TAS TEL THE TON TOT TUE UNE VIE VIN VOL VOS VUE AIDE AIME AINE AIRE ALLE AMIE AMIS ANGE ARME ARTS AUTO AVEC AVIS BAIN BALE BANC BASE BEAU BIEN BLEU BOIS BOUE BRAS BRUN BUTS CAFE CAGE CAMP CAVE CHAT CHER CHEZ CIEL CLEF COIN COUP COUR CUIR DAME DANS DATE DEUX DIRE DOIT DONC DOUX EAUX ECHO ELLE ETRE FACE FAIM FAIT FETE FILM FILS FINE FOIS FOND FORT FOUR GARE GENS GOUT GRIS HAUT HIER IDEE JOLI JOUE JOUR JUIN LAIT LAME LENT LEUR LIEN LIEU LIRE LOIN LONG LUNE MAIN MAIS MERE MIEL MIDI MINE MODE MOIS MONT MORT MUSE NAGE NEUF NOIR NOMS NOTE NOUS NUIT OEUF PAIN PAIX PARC PART PAYS PEAU PERE PIED PIRE PLAN PLUS POIL PONT PORT PRIX PURE QUAI QUEL QUOI RANG RARE RIEN RIRE ROBE ROSE ROUE RUSE SAGE SANG SANS SEUL SIEN SOIF SOIR SORT SOUS TANT TARD TETE TOIT TOUR TOUS TOUT TRES TROP TRUC TYPE UNIE VAIN VELO VENT VERS VERT VIDE VITE VIVE VOIX VOUS VRAI YOGA ZONE`;
-const DICO_LISTE=[...new Set(DICO_TXT.split(/\s+/).filter(Boolean))];
-const DICO=new Set(DICO_LISTE);
 
 let scrGrille=[],scrSac=[],scrChevalet=[],scrAdv=[],scrPlaces=[],scrSel=null;
-let scrScores=[0,0],scrPremier=true,scrTour=0,scrPasses=0,scrEch=false,scrEchSel=[],scrLog=[];
+let scrScores=[0,0],scrPremier=true,scrTour=0,scrPasses=0,scrLog=[];
 
 function melanger(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
 function piocher(rack){while(rack.length<7&&scrSac.length)rack.push(scrSac.pop());}
